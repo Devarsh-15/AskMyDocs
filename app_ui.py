@@ -2,6 +2,33 @@ import streamlit as st
 import os
 import tempfile
 
+
+st.set_page_config(
+    page_title="AskMyDocs",
+    page_icon="📄",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+)
+
+hide_streamlit_style = """
+<style>
+#MainMenu {
+    visibility: hidden;
+}
+
+header {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+</style>
+"""
+
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+
 # from app.evaluation import evaluate_rag
 
 from app.ingest import SUPPORTED_EXTENSIONS
