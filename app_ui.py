@@ -28,8 +28,8 @@ rag = st.session_state.rag
 
 st.header("Upload Documents")
 st.info(
-    "Upload one or more PDF, TXT, Word, or PowerPoint documents here. "
-    "AskMyDocs answers your questions using only the content grounded in the uploaded document(s)."
+    "Upload one or more documents and ask questions in natural language. "
+    "AskMyDocs provides accurate, context-grounded answers using only the content of your uploaded documents."
 )
 
 uploaded_files = st.file_uploader(
