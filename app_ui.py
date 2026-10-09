@@ -103,21 +103,36 @@ if st.button("Clear Question Cache"):
     st.success("Question cache cleared.")
     st.rerun()
 
+
 if st.button("Ask"):
-
-    if question:
-
+    if question and question.strip():
         with st.spinner("Generating answer..."):
-            answer, sources = rag.ask(question)
+            try:
+                answer, sources = rag.ask(question.strip())
 
-        st.session_state.last_answer = answer
-        st.session_state.last_sources = sources
+                st.session_state.last_answer = answer
+                st.session_state.last_sources = sources
 
-        st.subheader("Answer")
-        # st.write(answer)
-        st.success(answer)
-        st.subheader("Sources")
-        for source in sources:
-            st.write(f"- {source}")
+                st.subheader("Answer")
+                st.success(answer)
+
+                st.subheader("Sources")
+                if sources:
+                    for source in sources:
+                        st.write(f"- {source}")
+                else:
+                    st.info("No supporting source files were identified.")
+
+            except Exception as error:
+                # Detailed diagnostic goes to server logs.
+                print(
+                    f"AskMyDocs question failed: "
+                    f"{type(error).__name__}: {error}"
+                )
+                st.error(
+                    "Unable to generate an answer right now. "
+                    "Please try again later. If the issue persists, "
+                    "check the app logs."
+                )
     else:
-        st.warning("Please enter a question before asking!!")
+        st.warning("Please enter a question before asking.")
