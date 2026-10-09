@@ -4,10 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_GROQ_MODEL = "llama-3.1-8b-instant"
+DEFAULT_GROQ_MODEL = "openai/gpt-oss-20b"
+
 DEFAULT_GROQ_FALLBACK_MODELS = [
-    "llama-3.3-70b-versatile",
-    "gemma2-9b-it",
+    "openai/gpt-oss-120b",
 ]
 
 
@@ -113,17 +113,11 @@ def normalize_context(context_input):
 # Answer Generation
 # ------------------------------
 
+
 def generate_answer(client, query, context_input):
-    """
-    Generate answer using Groq LLM with strict RAG guardrails.
-    """
+    """Generate a document-grounded answer using Groq."""
 
     context = normalize_context(context_input)
-
-    # ------------------------------
-    # HARDENING GUARD
-    # Prevent LLM call if context empty
-    # ------------------------------
 
     if not context.strip():
         return "The information is not available in the documents."
@@ -146,7 +140,7 @@ Question:
 Answer:
 """
 
-    last_error = None
+    errors = []
 
     for model_name in get_groq_models():
         try:
@@ -155,13 +149,27 @@ Answer:
                 messages=[
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0  ## FOR DETERMINISTIC ANSWERS
             )
 
-            return response.choices[0].message.content
+            answer = response.choices[0].message.content
+
+            if answer and answer.strip():
+                return answer.strip()
+
+            errors.append(f"{model_name}: empty response")
 
         except Exception as error:
-            last_error = error
+            # Do not log API keys or the full document context.
+            error_type = type(error).__name__
+            print(
+                f"Groq request failed for {model_name}: "
+                f"{error_type}: {error}"
+            )
+            errors.append(f"{model_name}: {error_type}: {error}")
 
-    raise RuntimeError("All configured Groq models failed.") from last_error
-                    
+    details = " | ".join(errors)
+
+    raise RuntimeError(
+        "All configured Groq models failed. "
+        f"Check Streamlit Cloud logs. Details: {details}"
+    )
